@@ -219,10 +219,10 @@ impl RawOverlayPanel {
             let _: () = msg_send![panel, setMovableByWindowBackground: YES];
             
             // Important: Set collection behavior
-            let behavior = NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace |
-                          NSWindowCollectionBehavior::NSWindowCollectionBehaviorTransient |
+            let behavior = //NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace |
+                          //NSWindowCollectionBehavior::NSWindowCollectionBehaviorTransient |
                           NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary |
-                          //NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces |
+                          NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces |
                           NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle;
             let _: () = msg_send![panel, setCollectionBehavior: behavior];
 
