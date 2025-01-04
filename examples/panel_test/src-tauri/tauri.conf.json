@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Overlay App",
+  "mainBinaryName": "Overlay App",
+  "identifier": "com.overlay.dev",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [],
+    "security": {
+      "capabilities": ["default"],
+      "csp": {
+        "default-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "asset:", "https://asset.localhost"],
+        "font-src": ["'self'", "data:"]
+      },
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**"]
+        }
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns"
+    ],
+    "resources": [],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "hardenedRuntime": true,
+      "entitlements": "Entitlements.plist"
+    },
+    "createUpdaterArtifacts": true
+  }
+}
