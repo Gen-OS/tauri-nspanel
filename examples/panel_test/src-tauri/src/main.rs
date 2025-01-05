@@ -26,12 +26,19 @@ struct WindowOptions {
     y: f64,
 }
 
+use tauri_nspanel::cocoa;
+
 #[tauri::command]
 async fn create_overlay_window(
-    app: tauri::AppHandle,
-    options: WindowOptions,
+  app: tauri::AppHandle,
+  options: WindowOptions,
 ) -> Result<(), String> {
-    
+  
+  let label = options.title.clone();
+  app.clone().run_on_main_thread(move || {
+    println!("Overlay window creating on main thread");
+    // 1. Build the Tauri window while invisible
+
     let window = WebviewWindowBuilder::new(
         &app,
         options.title.clone(),
@@ -40,21 +47,32 @@ async fn create_overlay_window(
     .inner_size(options.width, options.height)
     .position(options.x, options.y)
     .decorations(false)
-    .transparent(true)
-    .always_on_top(true)
     .focused(false)
+    .transparent(true)
     .resizable(false)
+    .always_on_top(true)
+    .visible(false) // start hidden
     .build()
-    .map_err(|e| e.to_string())?;
-    println!("Overlay window created successfully");
+    .expect("Failed to build window");
+
+    // 2. Convert to overlay panel
     
-    app.clone().run_on_main_thread(move || {
-        let window: WebviewWindow = app.app_handle().get_webview_window(&options.title).unwrap();
-        println!("Webview window retrieved successfully");
-        let _panel = window.to_overlay_panel().unwrap();
-    });
-    println!("Overlay window converted to panel on main thread successfully");
-    Ok(())
+    let window: WebviewWindow = app.app_handle().get_webview_window(&options.title).unwrap();
+    println!("Webview window retrieved successfully");
+    let panel = window.to_overlay_panel().unwrap();
+
+    // 3. Show as non-activating
+    panel.order_front_regardless();
+
+    // 4. If you want to be extra sure, deactivate the app:
+    unsafe {
+      use cocoa::appkit::NSApp;
+      let ns_app = cocoa::appkit::NSApp();
+      let _: () = msg_send![ns_app, deactivate];
+    }
+  });
+
+  Ok(())
 }
 
 fn main() {
@@ -87,6 +105,7 @@ fn main() {
             .always_on_top(true)
             .center()
             .focused(false)
+            .visible(false)
             .build()?;
 
             println!("Main window created successfully");
@@ -103,6 +122,9 @@ fn main() {
 fn init(app_handle: &AppHandle) {
     let window: WebviewWindow = app_handle.get_webview_window("main").unwrap();
     let panel = window.to_overlay_panel().unwrap();    
+
+    println!("Panel created successfully");
+    panel.order_front_regardless();
 }
 
 #[tauri::command]

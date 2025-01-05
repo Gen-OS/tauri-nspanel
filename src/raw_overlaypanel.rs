@@ -128,6 +128,10 @@ impl RawOverlayPanel {
         let _: () = unsafe { msg_send![self, orderFrontRegardless] };
     }
 
+    pub fn order_front(&self, sender: Option<id>) {
+        let _: () = unsafe { msg_send![self, orderFront:  sender.unwrap_or(nil)] };
+    }
+
     pub fn order_out(&self, sender: Option<id>) {
         let _: () = unsafe { msg_send![self, orderOut: sender.unwrap_or(nil)] };
     }
