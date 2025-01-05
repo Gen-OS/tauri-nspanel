@@ -31,8 +31,7 @@ async fn create_overlay_window(
     app: tauri::AppHandle,
     options: WindowOptions,
 ) -> Result<(), String> {
-    println!("Creating window with options: {:?}", options);
-    /* 
+    
     let window = WebviewWindowBuilder::new(
         &app,
         options.title.clone(),
@@ -43,13 +42,18 @@ async fn create_overlay_window(
     .decorations(false)
     .transparent(true)
     .always_on_top(true)
-    .visible(true)
+    .focused(false)
     .resizable(false)
     .build()
     .map_err(|e| e.to_string())?;
+    println!("Overlay window created successfully");
     
-    println!("Window created successfully");
-    */
+    app.clone().run_on_main_thread(move || {
+        let window: WebviewWindow = app.app_handle().get_webview_window(&options.title).unwrap();
+        println!("Webview window retrieved successfully");
+        let _panel = window.to_overlay_panel().unwrap();
+    });
+    println!("Overlay window converted to panel on main thread successfully");
     Ok(())
 }
 
@@ -60,9 +64,12 @@ fn main() {
             show_panel,
             hide_panel,
             close_panel,
-            create_overlay_window
+            create_overlay_window,
+            show_overlay,
+            hide_overlay,
+            close_overlay
         ])
-        .setup(|app| {
+        .setup(|app| {            
             // Set activation policy to Accessory to prevent the app icon from showing on the dock
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -89,7 +96,6 @@ fn main() {
 
             Ok(())
         })
-        
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -116,4 +122,26 @@ fn close_panel(handle: AppHandle) {
     let panel = handle.get_webview_panel("main").unwrap();
     panel.released_when_closed(true);
     panel.close();
+}
+
+#[tauri::command]
+fn show_overlay(handle: AppHandle, label: &str) {
+    if let Ok(panel) = handle.get_webview_overlay_panel(label) {
+        panel.show();
+    }
+}
+
+#[tauri::command]
+fn hide_overlay(handle: AppHandle, label: &str) {
+    if let Ok(panel) = handle.get_webview_overlay_panel(label) {
+        panel.order_out(None);
+    }
+}
+
+#[tauri::command]
+fn close_overlay(handle: AppHandle, label: &str) {
+    if let Ok(panel) = handle.get_webview_overlay_panel(label) {
+        panel.released_when_closed(true);
+        panel.close();
+    }
 }
