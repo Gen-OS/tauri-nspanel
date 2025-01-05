@@ -33,7 +33,7 @@ async fn create_overlay_window(
   app: tauri::AppHandle,
   options: WindowOptions,
 ) -> Result<(), String> {
-  
+  app.set_activation_policy(tauri::ActivationPolicy::Prohibited);
   let label = options.title.clone();
   app.clone().run_on_main_thread(move || {
     println!("Overlay window creating on main thread");
@@ -60,10 +60,10 @@ async fn create_overlay_window(
     let window: WebviewWindow = app.app_handle().get_webview_window(&options.title).unwrap();
     println!("Webview window retrieved successfully");
     let panel = window.to_overlay_panel().unwrap();
-
+    
     // 3. Show as non-activating
     panel.order_front_regardless();
-
+    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
     // 4. If you want to be extra sure, deactivate the app:
     unsafe {
       use cocoa::appkit::NSApp;
